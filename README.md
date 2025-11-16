@@ -1,261 +1,291 @@
-# Gym Schedule Manager
+# Gym Schedule Manager - Backend
 
-**Author:** K.M.N.I.Ranasinghe - 23IT0520
+A comprehensive backend service for generating and managing personalized workout schedules based on user fitness goals, experience levels, and availability.
 
+**Author:** V.P.C.Rasanga - 23IT0521
+
+---
+
+## Overview
+
+The Gym Schedule Manager backend is built using a layered architecture pattern that separates concerns across Data Access Objects (DAO), Services, and Routes. This system generates customized workout plans tailored to individual fitness goals and experience levels.
+
+---
 
 ## Project Structure
 
 ```
 backend/
-├── server.js              # Express server entry point
-├── config/
-│   └── db.js             # SQLite database configuration
 ├── dao/
-│   └── userDao.js        # Data Access Object for user operations
+│   └── scheduleDao.js          # Data Access Layer
 ├── routes/
-│   └── authRoutes.js     # Authentication endpoints
-├── services/
-│   └── userService.js    # Business logic for user operations
-└── public/               # Static files
-
-database/
-├── gym.db                # SQLite database file
-└── schema.sql            # Database schema definitions
+│   └── scheduleRoutes.js       # API Routes
+└── services/
+    └── scheduleService.js      # Business Logic Layer
 ```
+
+---
 
 ## Features Implemented
 
-### 1. User Authentication & Management
+### 1. **Schedule Generation** 
+Generates personalized workout schedules based on:
+- **Fitness Goals:**
+  - Muscle Gain
+  - Fat Loss
+  - Strength
+  - Endurance
 
-#### User Registration
-- **Endpoint:** `POST /auth/register`
-- **Features:**
-  - User registration with name, email, and password
-  - Password hashing using bcryptjs for security
-  - User profile data collection (age, gender, experience level)
-  - Email uniqueness validation
-  - Password minimum length validation (6 characters)
-  - Returns user ID and basic info upon successful registration
+- **Experience Levels:**
+  - Beginner
+  - Intermediate
+  - Advanced
 
-#### User Login
-- **Endpoint:** `POST /auth/login`
-- **Features:**
-  - Email and password authentication
-  - Secure password verification using bcrypt
-  - Returns user details without exposing password
-  - Credential validation
+- **User Parameters:**
+  - Age
+  - Gender
+  - Available training days (1-7 days/week)
+  - Available time per session
+  - Experience level
 
-#### User Profile Management
-- **Endpoint:** `GET /auth/user/:id`
-  - Retrieve user profile information by ID
-  
-- **Endpoint:** `PUT /auth/user/:id`
-  - Update user profile (name, age, gender, experience level)
-  - Returns updated user information
+### 2. **Four Specialized Workout Plans**
 
-#### Password Management
-- **Functionality:** Change password feature
-  - Verifies old password before allowing change
-  - Hashes new password with bcryptjs
-  - Secure password update mechanism
+#### **Muscle Gain Plan** (Push/Pull/Legs Split)
+- Tailored exercises for muscle hypertrophy
+- Progressive overload recommendations
+- Varying intensity based on experience level
+- Rest periods optimized for muscle recovery
 
-### 2. Database Layer
+#### **Fat Loss Plan** (HIIT & Circuit Training)
+- High-Intensity Interval Training circuits
+- Metabolic conditioning exercises
+- Time-efficient workouts
+- Minimal rest periods for cardiovascular benefit
 
-#### Database Configuration (`config/db.js`)
-- SQLite3 integration
-- Automatic database directory creation
-- Schema initialization from SQL file
-- Promise-based async utilities:
-  - `runAsync()` - Execute insert/update/delete queries
-  - `getAsync()` - Fetch single row
-  - `allAsync()` - Fetch multiple rows
+#### **Strength Plan** (Heavy Compound Lifts)
+- Focus on major compound movements (Squat, Bench Press, Deadlift)
+- Progressive programming for strength development
+- Extended rest periods for nervous system recovery
+- Periodized approach for different experience levels
 
-#### Data Access Object (`dao/userDao.js`)
-- **User Operations:**
-  - `createUser()` - Create new user with profile information
-  - `findUserByEmail()` - Query user by email
-  - `findUserById()` - Query user by ID
-  - `updateUser()` - Update user profile details
-  - `updatePassword()` - Update user password securely
-  - `deleteUser()` - Delete user account
-  - `getAllUsers()` - Retrieve all users (admin functionality)
+#### **Endurance Plan** (High Rep, Low Weight)
+- Sustained effort training
+- Cardiovascular conditioning
+- High repetition ranges
+- Minimal rest for muscular endurance
 
-### 3. Business Logic
+### 3. **Database Operations**
+- Create and store workout schedules
+- Retrieve schedules by user ID
+- Fetch latest schedules (last 7 days)
+- Delete individual or all user schedules
+- Track schedule counts per user
 
-#### User Service (`services/userService.js`)
-- **Registration Flow:**
-  - Email duplication check
-  - Secure password hashing
-  - User creation via DAO
-  
-- **Login Flow:**
-  - User lookup by email
-  - Password verification
-  - Secure response (no password included)
+### 4. **API Endpoints**
 
-- **Profile Operations:**
-  - Get user by ID
-  - Update profile information
-  - Change password with verification
+#### POST `/schedules/generate`
+Generates a new workout schedule for a user.
 
-### 4. API Routes
-
-#### Authentication Routes (`routes/authRoutes.js`)
-- `POST /auth/register` - User registration
-- `POST /auth/login` - User authentication
-- `GET /auth/user/:id` - Get user profile
-- `PUT /auth/user/:id` - Update user profile
-
-### 5. Database Schema
-
-#### Users Table
-- Stores user credentials and profile information
-- Fields: user_id, name, email, password, age, gender, experience_level, created_at
-- Email is unique
-- Automatic timestamp on creation
-
-#### Schedules Table
-- Stores workout schedules for users
-- Fields: schedule_id, user_id, goal, available_days, available_time, day, exercises, created_date
-- Linked to users via foreign key with CASCADE delete
-- Indexed for performance
-
-#### Progress Table
-- Tracks user fitness progress
-- Fields: progress_id, user_id, date, weight, lift_data, notes, created_at
-- Stores workout metrics and observations
-- Indexed by user_id and date for efficient querying
-
-### 6. Server Configuration
-
-#### Express Server (`backend/server.js`)
-- Port: 3000 (configurable via environment variable)
-- CORS enabled for cross-origin requests
-- JSON and URL-encoded request parsing
-- Static file serving from public directory
-- API routes:
-  - `/auth` - Authentication endpoints
-  - `/schedules` - Schedule management
-  - `/progress` - Progress tracking
-- Error handling middleware
-- 404 route handler
-
-## Technology Stack
-
-- **Runtime:** Node.js
-- **Framework:** Express.js
-- **Database:** SQLite3
-- **Security:** bcryptjs (password hashing)
-- **Middleware:** CORS, Express JSON/URL-encoded parsers
-
-## Key Features & Best Practices
-
-✓ **Security:**
-- Password hashing with bcryptjs (salt rounds: 10)
-- No passwords exposed in API responses
-- Email validation and uniqueness
-
-✓ **Database:**
-- Promise-based async operations
-- Parameterized queries to prevent SQL injection
-- Foreign keys with cascade delete
-- Indexed queries for performance
-- Automatic schema initialization
-
-✓ **Error Handling:**
-- Try-catch blocks in all operations
-- Descriptive error messages
-- HTTP status codes (201, 400, 401, 404, 500)
-- Centralized error middleware
-
-✓ **Architecture:**
-- MVC pattern (Model-View-Controller)
-- DAO pattern for data access abstraction
-- Service layer for business logic
-- Separation of concerns
-
-## Dependencies
-
+**Request Body:**
 ```json
 {
-  "express": "^4.x",
-  "sqlite3": "^5.x",
-  "bcryptjs": "^2.x",
-  "cors": "^2.x"
-}
-```
-
-## Future Enhancements
-
-- JWT authentication for stateless sessions
-- Rate limiting for API endpoints
-- Input validation middleware
-- User role-based access control
-- Password reset functionality
-- Email verification
-- Logging and monitoring
-
-## Installation & Setup
-
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-2. Run the server:
-   ```bash
-   npm start
-   ```
-
-3. Server will listen on `http://localhost:3000`
-
-## API Usage Examples
-
-### Register User
-```
-POST /auth/register
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
+  "userId": "user123",
   "age": 25,
-  "gender": "Male",
-  "experienceLevel": "Intermediate"
+  "gender": "male",
+  "goal": "muscle gain",
+  "availableDays": 5,
+  "availableTime": 60,
+  "experienceLevel": "intermediate"
 }
 ```
 
-### Login
-```
-POST /auth/login
-Content-Type: application/json
-
+**Response:**
+```json
 {
-  "email": "john@example.com",
-  "password": "password123"
+  "message": "Schedule generated successfully",
+  "schedule": [
+    {
+      "day": "Monday",
+      "exercises": [...],
+      "notes": "Push Day - Chest, Shoulders, Triceps"
+    }
+  ]
 }
 ```
 
-### Get User Profile
-```
-GET /auth/user/1
+#### GET `/schedules/user/:userId`
+Retrieves all user schedules (latest 7 records).
+
+**Response:**
+```json
+[
+  {
+    "schedule_id": 1,
+    "user_id": "user123",
+    "goal": "muscle gain",
+    "day": "Monday",
+    "exercises": [...],
+    "created_date": "2025-11-16T10:30:00Z"
+  }
+]
 ```
 
-### Update User Profile
-```
-PUT /auth/user/1
-Content-Type: application/json
+#### DELETE `/schedules/:id`
+Deletes a specific workout schedule.
 
+**Response:**
+```json
 {
-  "name": "John Doe",
-  "age": 26,
-  "gender": "Male",
-  "experienceLevel": "Advanced"
+  "message": "Schedule deleted successfully"
 }
 ```
 
 ---
 
+## Architecture
+
+### Data Access Layer (`scheduleDao.js`)
+- Handles all database operations
+- CRUD operations for schedules
+- Query abstraction
+- Error handling for database operations
+
+**Methods:**
+- `createSchedule()` - Insert new schedule
+- `getSchedulesByUserId()` - Fetch all user schedules
+- `getLatestScheduleByUserId()` - Get last 7 schedules
+- `getScheduleById()` - Fetch specific schedule
+- `deleteSchedule()` - Remove a schedule
+- `deleteUserSchedules()` - Remove all user schedules
+- `getScheduleCount()` - Get total schedules for user
+
+### Service Layer (`scheduleService.js`)
+- Contains core business logic
+- Generates customized workout plans
+- Manages schedule creation workflow
+- Implements specialized workout generation algorithms
+
+**Key Methods:**
+- `generateSchedule()` - Main schedule generation engine
+- `generateMuscleGainPlan()` - PPL split generation
+- `generateFatLossPlan()` - HIIT circuit generation
+- `generateStrengthPlan()` - Compound lift programming
+- `generateEndurancePlan()` - Cardio & endurance training
+- `getUserSchedules()` - Service wrapper for retrieval
+- `deleteSchedule()` - Service wrapper for deletion
+
+### Route Layer (`scheduleRoutes.js`)
+- Defines API endpoints
+- Request validation
+- Response formatting
+- Error handling
+
+**Features:**
+- Input validation for required fields
+- Proper HTTP status codes
+- Comprehensive error messages
+- Async/await pattern
+
+---
+
+## Workout Plan Details
+
+### Exercise Information Structure
+Each exercise includes:
+- `name` - Exercise name
+- `sets` - Number of sets
+- `reps` - Repetition range or duration
+- `rest` - Rest period between sets
+
+### Muscle Gain Plan Variations
+- **Beginner:** Basic 3-4 sets per exercise, moderate weights
+- **Intermediate:** 3-5 sets with progressive overload
+- **Advanced:** 4-6 sets with heavy weights and accessory work
+
+### Fat Loss Plan Variations
+- **Beginner:** 30-minute circuits with 30s rest
+- **Intermediate:** 40+ minute sessions with minimal rest
+- **Advanced:** Advanced plyometric and explosive movements
+
+### Strength Plan Variations
+- **Beginner:** Linear progression (5/3/1 style)
+- **Intermediate:** Volume-based programming
+- **Advanced:** Periodized heavy/volume/deload cycles
+
+### Endurance Plan Variations
+- **Beginner:** 20 minutes of cardio + bodyweight exercises
+- **Intermediate:** 30 minutes of cardio + moderate intensity
+- **Advanced:** 45+ minutes with high-intensity intervals
+
+---
+
+## Database Schema
+
+```sql
+CREATE TABLE schedules (
+  schedule_id INT PRIMARY KEY AUTO_INCREMENT,
+  user_id VARCHAR(50) NOT NULL,
+  goal VARCHAR(50) NOT NULL,
+  available_days INT,
+  available_time INT,
+  day VARCHAR(20),
+  exercises JSON,
+  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+## Error Handling
+
+The system implements comprehensive error handling:
+- Database operation errors are caught and logged
+- Invalid input validation before processing
+- Meaningful error messages returned to clients
+- Try-catch blocks throughout the stack
+
+---
+
+## Technologies Used
+
+- **Runtime:** Node.js
+- **Framework:** Express.js
+- **Database:** SQLite/MySQL
+- **Language:** JavaScript (ES6+)
+- **Async Pattern:** Async/Await
+
+---
+
+## Future Enhancements
+
+- User preference customization
+- Exercise difficulty ratings
+- Rest day integration
+- Progression tracking
+- Nutritional recommendations
+- Exercise form video integration
+- Social sharing capabilities
+
+---
+
+## Notes
+
+- Existing schedules are automatically deleted when a new one is generated for the user
+- Latest 7 schedules are returned for user history
+- Exercises are stored as JSON for flexibility
+- All operations are asynchronous for better performance
+
+---
+
+## Installation & Setup
+
+1. Ensure Node.js is installed
+2. Install dependencies: `npm install`
+3. Configure database connection in `config/db.js`
+4. Set up the schedules table in your database
+5. Start the server: `npm start`
+
+---
+
 **Version:** 1.0.0  
-**Last Updated:** November 2025
+**Last Updated:** November 16, 2025
